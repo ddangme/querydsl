@@ -1,6 +1,7 @@
 package study.querydsl;
 
 import com.querydsl.core.QueryResults;
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -202,6 +203,39 @@ public class QuerydslBasicTest {
                 .fetch();
 
         assertThat(result.size()).isEqualTo(2);
+    }
+
+
+    /**
+     * JPQL
+     * SELECT
+     *      COUNT(m),   // 회원의 수
+     *      SUM(m.age), // 나이의 합
+     *      AVG(m.age), // 평균 나이
+     *      MAX(m.age), // 최대 나이
+     *      MIN(m.age)  // 최소 나이
+     * FROM Member m
+     */
+    @DisplayName("집합")
+    @Test
+    void aggregation() throws Exception {
+        List<Tuple> result = queryFactory
+                .select(member.count(),
+                        member.age.sum(),
+                        member.age.avg(),
+                        member.age.max(),
+                        member.age.min())
+                .from(member)
+                .fetch();
+
+        // 실무에선 tuple을 사용하기 보단 dto를 사용한다.
+        Tuple tuple = result.get(0);
+        assertThat(tuple.get(member.count())).isEqualTo(4);
+        assertThat(tuple.get(member.age.sum())).isEqualTo(100);
+        assertThat(tuple.get(member.age.avg())).isEqualTo(25);
+        assertThat(tuple.get(member.age.max())).isEqualTo(40);
+        assertThat(tuple.get(member.age.min())).isEqualTo(10);
+        System.out.println("tuple print = " + tuple);
     }
 
 
