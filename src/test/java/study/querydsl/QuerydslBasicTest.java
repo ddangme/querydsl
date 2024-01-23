@@ -1,5 +1,6 @@
 package study.querydsl;
 
+import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -130,6 +131,35 @@ public class QuerydslBasicTest {
                 .fetch();
 
         assertThat(findMembers.size()).isEqualTo(1);
+    }
+
+    @Test
+    void resultFetch() {
+        // List 조회
+        List<Member> fetch = queryFactory
+                .selectFrom(member)
+                .fetch();
+
+        // 단건 조회
+        Member findMember1 = queryFactory
+                .selectFrom(member)
+                .fetchOne();
+
+        // 검색 결과 처음의 한 건 조회
+        Member findMember2 = queryFactory
+                .selectFrom(member)
+                .fetchFirst();
+
+        // 페이징에서 사용 (QueryDSL 5.0 부터 사용하지 않는다.)
+        QueryResults<Member> results = queryFactory
+                .selectFrom(member)
+                .fetchResults();
+
+        // count 쿼리로 변경 (QueryDSL 5.0 부터 사용하지 않는다.)
+        long count = queryFactory
+                .selectFrom(member)
+                .fetchCount();
+
     }
 
 
