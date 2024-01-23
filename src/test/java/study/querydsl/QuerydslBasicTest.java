@@ -119,5 +119,18 @@ public class QuerydslBasicTest {
         member.username.startsWith("member"); //like "member%" 검색
     }
 
+    @DisplayName("AND 조건을 파라미터로 처리")
+    @Test
+    public void searchAndParam() {
+        List<Member> findMembers = queryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1"), // 쉼표(,)를 사용할 경우 and 조건과 동일하다.
+                        member.age.eq(10)
+                )
+                .fetch();
+
+        assertThat(findMembers.size()).isEqualTo(1);
+    }
+
 
 }
