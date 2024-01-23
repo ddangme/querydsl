@@ -286,4 +286,23 @@ public class QuerydslBasicTest {
         // rightJoin() : right 외부 조인 (right outer join)
     }
 
+    @DisplayName("세타 조인 - 연관 관계 없는 필드로 조인")
+    @Test
+    void theta_join() {
+        // Given
+        em.persist(new Member("teamA"));
+        em.persist(new Member("teamB"));
+
+        List<Member> result = queryFactory
+                .select(member)
+                .from(member, team)
+                .where(member.username.eq(team.name))
+                .fetch();
+
+        // Then
+        assertThat(result)
+                .extracting("username")
+                .containsExactly("teamA", "teamB");
+    }
+
 }
