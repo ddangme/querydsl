@@ -268,7 +268,7 @@ public class QuerydslBasicTest {
      */
     @DisplayName("기본 조인")
     @Test
-    void test() throws Exception {
+    void join() throws Exception {
         // Given
         List<Member> result = queryFactory
                 .selectFrom(member)
@@ -285,6 +285,5 @@ public class QuerydslBasicTest {
         // leftJoin() : left 외부 조인 (left outer join)
         // rightJoin() : right 외부 조인 (right outer join)
     }
-
 
 }
