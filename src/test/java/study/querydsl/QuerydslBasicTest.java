@@ -2,7 +2,6 @@ package study.querydsl;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -74,7 +73,7 @@ public class QuerydslBasicTest {
     @DisplayName("QueryDSL - member1을 찾아라")
     @Test
     public void startQuerydsl() {
-        QMember m = new QMember("m");
+        QMember m = QMember.member; // 기본 인스턴스 사용
 
         Member findMember = queryFactory
                 .select(m)
