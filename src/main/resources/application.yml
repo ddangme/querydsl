@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/board
-    username: ddangme
-    password: qwerty123456
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:
@@ -11,7 +11,7 @@ spring:
       hibernate:
         format_sql: true
         show_sql: true
-        use_sql_comments: true # 실행되는 JPQL를 보도록 설정 /* ~~ */
+        use_sql_comments: true
 
 logging:
   level:
