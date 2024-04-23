@@ -341,7 +341,7 @@ public class MemberController {
     private final MemberJPARepository memberJPARepository;
 
     @GetMapping("/v1/members")
-    public List<MemberTeamDTO> searchTeam(MemberSearchCondition condition) {
+    public List<MemberTeamDTO> searchTeamV1(MemberSearchCondition condition) {
         return memberJPARepository.search(condition);
     }
 }
