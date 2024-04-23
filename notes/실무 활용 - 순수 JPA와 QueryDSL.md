@@ -276,3 +276,101 @@ private BooleanExpression ageLoe(Integer ageLoe) {
 > ```
 
 ## 조회 API 컨트롤러 개발
+편리한 데이터 확인을 위해 샘플 데이터를 추가하자.  
+샘플 데이터 추가가 테스트 케이스 실행에 영향을 주지 않도록 다음과 같이 프로파일을 설정하자.
+
+### [프로파일 설정](..%2Fsrc%2Fmain%2Fresources%2Fapplication.yml)
+```yaml
+spring:
+  profiles:
+    active: local
+```
+
+### [테스트 프로파일 설정](..%2Fsrc%2Ftest%2Fresources%2Fapplication.yml)
+테스트는 기존 `application.yml`을 복사해서 테스트 폴더의 경로로 붙여넣고, 프로파일을 `test`로 수정하자.
+```yaml
+spring:
+  profiles:
+    active: test
+```
+
+이렇게 분리하면 main 소스코드와 테스트 소스 코드 실행 시 프로파일을 분리할 수 있다.
+
+### [샘플 데이터 추가 - InitMember](..%2Fsrc%2Fmain%2Fjava%2Fstudy%2Fquerydsl%2FInitMember.java)
+```java
+@Profile("local")
+@Component
+@RequiredArgsConstructor
+public class InitMember {
+
+    private final InitMemberService initMemberService;
+
+    @PostConstruct
+    public void init() {
+        initMemberService.init();
+    }
+    
+    @Component
+    static class InitMemberService {
+        
+        @PersistenceContext
+        EntityManager em;
+        
+        @Transactional
+        public void init() {
+            Team teamA = new Team("teamA");
+            Team teamB = new Team("teamB");
+            em.persist(teamA);
+            em.persist(teamB);
+
+            for (int i = 0; i < 100; i++) {
+                Team selectedTeam = i % 2 == 0 ? teamA : teamB;
+                em.persist(new Member("member" + i, i, selectedTeam));
+            }
+        }
+    }
+}
+```
+
+### [조회 컨트롤러 - MemberController](..%2Fsrc%2Fmain%2Fjava%2Fstudy%2Fquerydsl%2Fcontroller%2FMemberController.java)
+```java
+@RestController
+@RequiredArgsConstructor
+public class MemberController {
+    
+    private final MemberJPARepository memberJPARepository;
+
+    @GetMapping("/v1/members")
+    public List<MemberTeamDTO> searchTeam(MemberSearchCondition condition) {
+        return memberJPARepository.search(condition);
+    }
+}
+```
+
+### 실행 결과
+postman으로 `http://localhost:8080/v1/members?teamName=teamB&ageGoe=31&ageLoe=35` 확인 시 아래의 결과가 출력된다.
+```json
+[
+    {
+        "memberId": 32,
+        "username": "member31",
+        "age": 31,
+        "teamId": 2,
+        "teamName": "teamB"
+    },
+    {
+        "memberId": 34,
+        "username": "member33",
+        "age": 33,
+        "teamId": 2,
+        "teamName": "teamB"
+    },
+    {
+        "memberId": 36,
+        "username": "member35",
+        "age": 35,
+        "teamId": 2,
+        "teamName": "teamB"
+    }
+]
+```
