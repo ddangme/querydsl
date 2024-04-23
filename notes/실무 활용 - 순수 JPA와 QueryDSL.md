@@ -1,7 +1,7 @@
 # 목차
-🎀 [순수 JPA Repository와 QueryDSL](#순수-jpa-repository와-querydsl)
-🎀 [동적 쿼리와 성능 최적화 조회](#동적-쿼리와-성능-최적화-조회)
-🎀 [조회 API 컨트롤러 개발](#조회-api-컨트롤러-개발)
+🎀 [순수 JPA Repository와 QueryDSL](#순수-jpa-repository와-querydsl)  
+🎀 [동적 쿼리와 성능 최적화 조회](#동적-쿼리와-성능-최적화-조회)  
+🎀 [조회 API 컨트롤러 개발](#조회-api-컨트롤러-개발)  
 
 ## 순수 JPA Repository와 QueryDSL
 ### [순수 JPA Repository - MemberJPARepository](..%2Fsrc%2Fmain%2Fjava%2Fstudy%2Fquerydsl%2Frepository%2FMemberJPARepository.java)
