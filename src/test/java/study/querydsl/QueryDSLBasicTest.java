@@ -15,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDTO;
+import study.querydsl.dto.QMemberDTO;
 import study.querydsl.dto.UserDTO;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
@@ -515,6 +516,22 @@ public class QueryDSLBasicTest {
     void findDTOByConstructor() {
         queryFactory
                 .select(Projections.constructor(MemberDTO.class, member.username, member.age))
+                .from(member)
+                .fetch();
+    }
+
+    @Test
+    void findDTOByQueryProjection() {
+        queryFactory
+                .select(new QMemberDTO(member.username, member.age))
+                .from(member)
+                .fetch();
+    }
+
+    @Test
+    void distinct() {
+        queryFactory
+                .select(member.username).distinct()
                 .from(member)
                 .fetch();
     }
