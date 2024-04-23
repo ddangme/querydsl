@@ -29,7 +29,7 @@ class QuerydslApplicationTests {
 				.selectFrom(qHello)
 				.fetchOne();
 		Assertions.assertThat(result).isEqualTo(hello);
-//lombok 동작 확인 (hello.getId()) Assertions.assertThat(result.getId()).isEqualTo(hello.getId());
+		//lombok 동작 확인 (hello.getId()) Assertions.assertThat(result.getId()).isEqualTo(hello.getId());
 	}
 
 }
