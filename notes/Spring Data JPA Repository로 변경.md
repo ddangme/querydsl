@@ -204,6 +204,8 @@ public Page<MemberTeamDTO> searchPageSimple(MemberSearchCondition condition, Pag
     return new PageImpl<>(content, pageable, total);
 }
 ```
+- Querydsl이 제공하는 `fetchResults()` 를 사용하면 내용과 전체 카운트를 한번에 조회할 수 있다.(실제 쿼리 는 2번 호출)
+- `fetchResult()` 는 카운트 쿼리 실행시 필요없는 `order by` 는 제거한다.
 
 ### [데이터 내용과 전체 카운트를 별도로 조회하는 방법](..%2Fsrc%2Fmain%2Fjava%2Fstudy%2Fquerydsl%2Frepository%2FMemberRepositoryImpl.java)
 ```java
@@ -247,4 +249,42 @@ public Page<MemberTeamDTO> searchPageComplex(MemberSearchCondition condition, Pa
 - 코드를 리팩토링해서 내용 쿼리와 전체 카운트 쿼리를 읽기 좋게 분리하면 좋다.
 
 ## Spring Data 페이징 활용 2 - CountQuery 최적화
+### PageableExecutionUtils.getPage()로 최적화
+```java
+@Override
+public Page<MemberTeamDTO> searchPageCountQuery(MemberSearchCondition condition, Pageable pageable) {
+    List<MemberTeamDTO> content = queryFactory
+            .select(new QMemberTeamDTO(
+                    member.id,
+                    member.username,
+                    member.age,
+                    team.id,
+                    team.name
+            )).from(member)
+            .leftJoin(member.team, team)
+            .where(usernameEq(condition.getUsername()),
+                    teamNameEq(condition.getTeamName()),
+                    ageGoe(condition.getAgeGoe()),
+                    ageLoe(condition.getAgeLoe()))
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+    
+    JPAQuery<Member> countQuery = queryFactory
+            .select(member)
+            .from(member)
+            .leftJoin(member.team, team)
+            .where(usernameEq(condition.getUsername()),
+                    teamNameEq(condition.getTeamName()),
+                    ageGoe(condition.getAgeGoe()),
+                    ageLoe(condition.getAgeLoe()));
+
+    return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchCount);
+}
+```
+- 스프링 데이터 라이브러리가 제공 
+- count 쿼리가 생략 가능한 경우 생략해서 처리 
+  - 페이지 시작이면서 컨텐츠 사이즈가 페이지 사이즈보다 작을 때 
+  - 마지막 페이지 일 때 (offset + 컨텐츠 사이즈를 더해서 전체 사이즈 구함, 더 정확히는 마지막 페이지이면서 컨텐츠 사이즈가 페이지 사이즈보다 작을 때)
+
 ## Spring Data 페이징 활용 3 - 컨트롤러 개발
