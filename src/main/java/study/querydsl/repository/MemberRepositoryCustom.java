@@ -15,6 +15,8 @@ public interface MemberRepositoryCustom {
 
     Page<MemberTeamDTO> searchPageComplex(MemberSearchCondition condition, Pageable pageable);
 
+    Page<MemberTeamDTO> searchPageComplex2(MemberSearchCondition condition, Pageable pageable);
+
     Page<MemberTeamDTO> searchPageCountQuery(MemberSearchCondition condition, Pageable pageable);
 
 }

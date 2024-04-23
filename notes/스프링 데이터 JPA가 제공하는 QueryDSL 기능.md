@@ -3,6 +3,7 @@
 🎀 [Querydsl Web 지원](#querydsl-web-지원)
 🎀 [리포지토리 지원 - QuerydslRepositorySupport](#리포지토리-지원---querydslrepositorysupport)
 🎀 [Querydsl 지원 클래스 직접 만들기](#querydsl-지원-클래스-직접-만들기)
+🎀 [스프링 부트 2.6 이상, QueryDSL 5.0 지원 방법](#스프링-부트-26-이상-querydsl-50-지원-방법)
 
 여기서 소개하는 기능은 제약이 커서 복잡한 실무 환경에서 사용하기에는 많이 부족하다.
 그래도 스프링 데이터에서 제공하는 기능이므로 간단하게 소개하고, 왜 부족한지 설명한다.
@@ -259,5 +260,67 @@ public class MemberTestRepository extends Querydsl4RepositorySupport {
     private BooleanExpression ageLoe(Integer ageLoe) {
         return ageLoe == null ? null : member.age.loe(ageLoe);
     }
+}
+```
+
+## 스프링 부트 2.6 이상, QueryDSL 5.0 지원 방법
+Querydsl의 `fetchCount()` , `fetchResult()` 는 개발자가 작성한 select 쿼리를 기반으로 count용 쿼리를 내부에서 만들어서 실행합니다.  
+그런데 이 기능은 강의에서 설명드린 것 처럼 select 구문을 단순히 count 처리하는 용도로 바꾸는 정도입니다. 
+따라서 단순한 쿼리에서는 잘 동작하지만, 복잡한 쿼리에서는 제대로 동작하지 않습니다.  
+Querydsl은 향후 `fetchCount()` , `fetchResult()` 를 지원하지 않기로 결정했습니다.  
+참고로 Querydsl의 변화가 빠르지는 않기 때문에 당장 해당 기능을 제거하지는 않을 것입니다.  
+
+
+따라서 count 쿼리가 필요하면 다음과 같이 별도로 작성해야 합니다.
+
+### count 쿼리 예제
+```java
+@Test
+void count() {
+    Long totalCount = queryFactory
+            .select(member.count())
+            .from(member)
+            .fetchOne();
+}
+```
+- `count(*)` 을 사용하고 싶으면 `.select(Wildcard.count) 를 사용하면 됩니다.
+- `member.count()` 를 사용하면 `count(member.id)` 로 처리됩니다. 
+- 응답 결과는 숫자 하나이므로 `fetchOne()` 을 사용합니다.
+
+### 최신 버전 예제
+`MemberRepositoryImpl.searchPageComplex()` 예제에서 보여드린 것 처럼 select 쿼리와는 별도로 count 쿼리를 작성하고 `fetch()` 를 사용해야 합니다.
+```java
+@Override
+public Page<MemberTeamDTO> searchPageComplex2(MemberSearchCondition condition, Pageable pageable) {
+    List<MemberTeamDTO> content = queryFactory
+            .select(new QMemberTeamDTO(
+                    member.id.as("memberId"),
+                    member.username,
+                    member.age,
+                    team.id.as("teamId"), team.name.as("teamName")))
+            .from(member)
+            .leftJoin(member.team, team)
+            .where(
+                    usernameEq(condition.getUsername()),
+                    teamNameEq(condition.getTeamName()),
+                    ageGoe(condition.getAgeGoe()),
+                    ageLoe(condition.getAgeLoe())
+            )
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+
+    JPAQuery<Long> countQuery = queryFactory
+            .select(member.count())
+            .from(member)
+            .leftJoin(member.team, team)
+            .where(
+                    usernameEq(condition.getUsername()),
+                    teamNameEq(condition.getTeamName()),
+                    ageGoe(condition.getAgeGoe()),
+                    ageLoe(condition.getAgeLoe())
+            );
+
+    return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
 }
 ```
