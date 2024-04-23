@@ -39,5 +39,13 @@ Iterable result = memberRepository.findAll(member.age.between(10, 40));
 > 🍀 `QuerydslPredicateExecutor`는 `Pageable`, `Sort`를 모두 지원하고 정상 동작한다.
 
 ## Querydsl Web 지원
+[스프링 공식 문서](https://docs.spring.io/spring-data/jpa/docs/2.2.3.RELEASE/reference/html/#core.web.type-safe)
+
+한계점
+- 단순한 조건만 가능하다.
+- 조건을 커스텀하는 기능이 복잡하고 명시적이지 않다.
+- 컨트롤러가 `QueryDSL`에 의존한다.
+- 복잡한 실무환경에서 사용하기에는 한계가 명확하다.
+
 ## 리포지토리 지원 - QuerydslRepositorySupport
 ## Querydsl 지원 클래스 직접 만들기
