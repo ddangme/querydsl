@@ -287,4 +287,105 @@ public Page<MemberTeamDTO> searchPageCountQuery(MemberSearchCondition condition,
   - 페이지 시작이면서 컨텐츠 사이즈가 페이지 사이즈보다 작을 때 
   - 마지막 페이지 일 때 (offset + 컨텐츠 사이즈를 더해서 전체 사이즈 구함, 더 정확히는 마지막 페이지이면서 컨텐츠 사이즈가 페이지 사이즈보다 작을 때)
 
-## Spring Data 페이징 활용 3 - 컨트롤러 개발
+## [Spring Data 페이징 활용 3 - 컨트롤러 개발](..%2Fsrc%2Fmain%2Fjava%2Fstudy%2Fquerydsl%2Fcontroller%2FMemberController.java)
+```java
+@GetMapping("/v2/members")
+public Page<MemberTeamDTO> searchMemberV2(MemberSearchCondition condition, Pageable pageable) {
+    return memberRepository.searchPageSimple(condition, pageable);
+}
+
+@GetMapping("/v3/members")
+public Page<MemberTeamDTO> searchMemberV3(MemberSearchCondition condition, Pageable pageable) {
+    return memberRepository.searchPageCountQuery(condition, pageable);
+}
+```
+
+### 실행 결과
+`http://localhost:8080/v2/members?size=5&page=2` or `http://localhost:8080/v3/members?size=5&page=2` 
+```text
+   {
+    "content": [
+        {
+            "memberId": 11,
+            "username": "member10",
+            "age": 10,
+            "teamId": 1,
+            "teamName": "teamA"
+        },
+        {
+            "memberId": 12,
+            "username": "member11",
+            "age": 11,
+            "teamId": 2,
+            "teamName": "teamB"
+        },
+        {
+            "memberId": 13,
+            "username": "member12",
+            "age": 12,
+            "teamId": 1,
+            "teamName": "teamA"
+        },
+        {
+            "memberId": 14,
+            "username": "member13",
+            "age": 13,
+            "teamId": 2,
+            "teamName": "teamB"
+        },
+        {
+            "memberId": 15,
+            "username": "member14",
+            "age": 14,
+            "teamId": 1,
+            "teamName": "teamA"
+        }
+    ],
+    "pageable": {
+        "sort": {
+            "empty": true,
+            "sorted": false,
+            "unsorted": true
+        },
+        "offset": 10,
+        "pageNumber": 2,
+        "pageSize": 5,
+        "paged": true,
+        "unpaged": false
+    },
+    "last": false,
+    "totalPages": 20,
+    "totalElements": 100,
+    "first": false,
+    "size": 5,
+    "number": 2,
+    "sort": {
+        "empty": true,
+        "sorted": false,
+        "unsorted": true
+    },
+    "numberOfElements": 5,
+    "empty": false
+}
+```
+
+### 스프링 데이터 정렬 (Sort)
+스프링 데이터 JPA는 자신의 정렬(Sort)를 QueryDSL의 정렬(OrderSpecifier)로 편리하게 변경하는 기능을 제공한다.
+이 부분은 뒤에 스프링 데이터 JPA가 제공하는 QueryDSL 기능에서 알아본다.
+
+스프링 데이터의 정렬을 QueryDSL의 정렬로 직접 전환하는 방법은 다음 코드를 참고하자.
+#### 스프링 데이터 Sort를 QueryDSL의 OrderSpecifier로 변환
+```java
+JPAQuery<Member> query = queryFactory
+        .selectFrom(member);
+
+for (Sort.Order o : pageable.getSort()) {
+    PathBuilder pathBuilder = new PathBuilder(member.getType(), member.getMetadata());
+    query.orderBy(new OrderSpecifier(o.isAscending() ? Order.ASC : Order.DESC, pathBuilder.get(o.getProperty())));
+}
+
+List<Member> result = query.fetch();
+```
+
+> 🍀 정렬(`Sort`)은 조건이 조금만 복잡해져도 `Pageable`의 `Sort` 기능을 사용하기 어렵다.
+> 루트 엔티티 범위를 넘어가는 동적 정렬 기능이 필요하면 스프링 데이터 페이징이 제공하는 `Sort`를 사용하기 보다는 파라미터를 직접 받아서 처리하는 것을 권장한다.
