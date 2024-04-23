@@ -7,6 +7,7 @@ import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -629,5 +630,39 @@ public class QueryDSLBasicTest {
                 .delete(member)
                 .where(member.age.gt(18))
                 .execute();
+    }
+
+    @Test
+    void username을_member에서_M으로_변경하는_replace_함수_사용() {
+        String result = queryFactory
+                .select(Expressions.stringTemplate(
+                        "function('replace', {0}, {1}, {2})",
+                        member.username,
+                        "member",
+                        "M"))
+                .from(member)
+                .fetchFirst();
+    }
+
+    @Test
+    void 소문자로_변경해서_비교하기() {
+        String result = queryFactory
+                .select(member.username)
+                .from(member)
+                .where(member.username.eq(Expressions.stringTemplate(
+                        "function('lower', {0})",
+                        member.username
+                )))
+                .fetchFirst();
+
+    }
+
+    @Test
+    void 소문자로_변경해서_비교하기2() {
+        String result = queryFactory
+                .select(member.username)
+                .from(member)
+                .where(member.username.eq(member.username.lower()))
+                .fetchFirst();
     }
 }
